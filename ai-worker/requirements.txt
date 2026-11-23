@@ -1,0 +1,10 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+pillow>=10.3
+numpy>=1.26
+pypdf>=4.2
+pypdfium2>=3.1
+pytesseract>=0.3.10
+transformers>=4.45
+# torch/torchvision are installed from the CPU wheel index in the Dockerfile

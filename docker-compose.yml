@@ -1,0 +1,42 @@
+name: notes
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: notes-app
+    ports:
+      - "${PORT:-8082}:8082"
+    environment:
+      DATA_DIR: /data
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      TRUST_PROXY: "true"
+      COOKIE_SECURE: "${COOKIE_SECURE:-true}"
+      MAX_UPLOAD_MB: "${MAX_UPLOAD_MB:-512}"
+      ENABLE_AI_TRANSCRIPTION: "${ENABLE_AI_TRANSCRIPTION:-false}"
+      # Internal base URL of the ai-worker container. Only needed when the
+      # worker is not reachable at http://ai-worker:8000 on this compose
+      # network (e.g. it runs on another host/project).
+      AI_WORKER_URL: "${AI_WORKER_URL:-http://ai-worker:8000}"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+
+  # Optional OCR / captioning sidecar (Phase 9b). Enable with the "ai" profile:
+  #   docker compose --profile ai up -d
+  ai-worker:
+    profiles: ["ai"]
+    build: ./ai-worker
+    container_name: notes-ai-worker
+    environment:
+      DATA_DIR: /data
+      TRANSCRIPTION_MODEL: ${TRANSCRIPTION_MODEL:-florence-2-base}
+      MODEL_CACHE_DIR: /models
+    volumes:
+      - ./data:/data
+      - models:/models
+    restart: unless-stopped
+
+volumes:
+  models:
